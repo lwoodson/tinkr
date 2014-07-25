@@ -36,13 +36,25 @@ module Tinkr
         File.open(test_class_source, 'w') {|f| f.write(contents.join("\n"))}
       end
 
-      it "should pick up changes to the class definition in its source file automagically" do
+      def remove_foo_method_from_test_class
+        File.write(test_class_source, @original_contents)
+      end
+
+      it "should reflect method additions to the class definition in its source file automagically" do
         add_foo_method_to_test_class
         expect(subject.test_obj.foo).to eq(1)
       end
 
       it "variables referencing other variables with source code changes should reflect them automagically" do
+        add_foo_method_to_test_class
         expect(subject.hash[:test_obj].foo).to eq(1)
+      end
+
+      it "should reflect the removal of methods from source of evaluated objects" do
+        add_foo_method_to_test_class
+        expect(subject.test_obj.foo).to eq(1)
+        remove_foo_method_from_test_class
+        expect{subject.test_obj.foo}.to raise_error
       end
     end
   end

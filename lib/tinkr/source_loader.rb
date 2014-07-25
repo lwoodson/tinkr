@@ -1,13 +1,22 @@
 module Tinkr
   class SourceLoader
+    include Debugging
+
     def initialize(*paths)
       @paths = paths
     end
 
+    attr_reader :paths
+
     def reload!
       no_warnings do
-        @paths.each do |source|
-          load(source)
+        paths.each do |source|
+          debug("loading #{source}")
+          begin
+            load(source)
+          rescue StandardError => e
+            debug("ERROR: #{e}")
+          end
         end
       end
     end

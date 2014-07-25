@@ -3,37 +3,61 @@ module Tinkr
   # Given a target object, this will fetch all of the source
   # files within
   class SourceCollector
-    def initialize(target)
+    include Debugging
+
+    def initialize(target, time_threshold)
       @target = target
+      @time_threshold = time_threshold || Time.at(0)
     end
 
+    attr_reader :target
+
     def collect_sources
-      instance_method_objects
+      result = instance_method_objects
         .map(&to_source_path)
         .compact
         .map(&:first)
         .uniq
+        .reject(&illegal_paths)
+      debug "Detected #{result.size} source files for #{target}"
+      result
     end
 
     def instance_method_objects
-      instance_method_names.map(&to_method_obj(@target))
+      instance_method_names.map(&to_method_obj(target)).compact
     end
 
     def instance_method_names
-      if @target.instance_of?(Class)
-        @target.instance_methods
+      if target.instance_of?(Class)
+        target.instance_methods
       else
-        @target.methods
+        target.methods
       end
     end
 
     private
       def to_method_obj(target)
-        lambda {|name| target.method(name)}
+        lambda {|name| target.method(name) rescue nil}
       end
 
       def to_source_path
         lambda {|method| method.source_location}
+      end
+
+      def illegal_paths
+        lambda do |source|
+          # TODO find out why some activerecord path reload
+          # breaks db connections
+          source == "(eval)" || source.match(/activerecord/)
+        end
+      end
+
+      def mtime_filter
+        lambda do |file|
+          if @time_threshold
+            File.mtime(file) < @time_threshold
+          end
+        end
       end
   end
 end
