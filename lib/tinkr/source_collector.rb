@@ -5,9 +5,9 @@ module Tinkr
   class SourceCollector
     include Debugging
 
-    def initialize(target, time_threshold)
+    def initialize(target, last_eval)
       @target = target
-      @time_threshold = time_threshold || Time.at(0)
+      @last_eval = last_eval || Time.at(0)
     end
 
     attr_reader :target
@@ -19,6 +19,7 @@ module Tinkr
         .map(&:first)
         .uniq
         .reject(&illegal_paths)
+        .reject(&files_not_modified_since_last_eval)
       debug "Detected #{result.size} source files for #{target}"
       result
     end
@@ -52,11 +53,10 @@ module Tinkr
         end
       end
 
-      def mtime_filter
+      def files_not_modified_since_last_eval
+        last_eval = @last_eval
         lambda do |file|
-          if @time_threshold
-            File.mtime(file) < @time_threshold
-          end
+          File.mtime(file).to_f <= last_eval.to_f
         end
       end
   end

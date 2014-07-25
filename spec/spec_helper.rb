@@ -1,3 +1,3 @@
 require 'tinkr'
 
-Tinkr::Debugging.on!
+#Tinkr::Debugging.on!

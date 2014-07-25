@@ -16,9 +16,11 @@ module Tinkr
       debug("Defining variable #{name}")
       Kernel.send(:define_method, name) do
         temp = variable.evaluate
-        sources = SourceCollector.new(temp, @last_evaluation_time).collect_sources
-        ClassUnloader.new(temp.class).unload!
-        SourceLoader.new(*sources).reload!
+        sources = SourceCollector.new(temp, variable.last_evaluation_time).collect_sources
+        unless sources.empty?
+          ClassUnloader.new(temp.class).unload!
+          SourceLoader.new(*sources).reload!
+        end
         variable.last_evaluation_time = Time.now
         variable.evaluate
       end

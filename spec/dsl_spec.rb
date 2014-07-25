@@ -53,6 +53,7 @@ module Tinkr
       it "should reflect the removal of methods from source of evaluated objects" do
         add_foo_method_to_test_class
         expect(subject.test_obj.foo).to eq(1)
+        sleep(1)
         remove_foo_method_from_test_class
         expect{subject.test_obj.foo}.to raise_error
       end

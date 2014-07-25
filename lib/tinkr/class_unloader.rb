@@ -10,7 +10,6 @@ module Tinkr
     attr_reader :target_class
 
     def unload!
-      puts "UNLOADING MOFO: #{target_class}"
       unless RESTRICTED_CLASSES.include?(target_class)
         debug("Unloading #{constant} from #{parent_namespace}")
         parent_namespace.send(:remove_const, constant.to_sym)
